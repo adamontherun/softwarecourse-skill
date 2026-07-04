@@ -34,6 +34,12 @@ see [Origin](#origin) below.
 - Optional one-shot publishing to GitHub: creates the repo under your own
   authenticated account, pushes, enables GitHub Pages, and wires up the
   Codespaces badge.
+- The book itself links back out, once deployed: every page's sidebar has
+  a one-click "Launch Codespace" button and a GitHub repo link, and every
+  chapter's "Try it" box tells the reader they can skip local setup
+  entirely and run that chapter's code in Codespaces instead. A reader
+  landing on any single chapter page is never more than one click from a
+  running environment.
 
 ## Prerequisites
 

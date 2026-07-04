@@ -155,6 +155,14 @@ callout boxes, code block with copy button. Don't write chapter content yet
 and check it in a real browser (light and dark mode, at least one narrow
 viewport) before moving on. Commit.
 
+Both templates ship a `.sidebar-links` block (a "Launch Codespace" button and
+a "GitHub repo" link, right under the tagline) using `{{CODESPACES_URL}}` /
+`{{REPO_URL}}` tokens. These can't resolve to anything real until a GitHub
+repo exists, so leave them as literal tokens for now — the Deploy stage fills
+them in everywhere at once (see its step 7). If you already know at this
+point that the course will never be deployed, delete the block instead of
+carrying dead tokens through the whole build.
+
 If this course lives in a different directory than wherever the current
 session's tooling is already anchored, an interactive browser-preview tool
 may still be pointed at that original directory and quietly serve the wrong
@@ -185,10 +193,15 @@ chapter in that part:
 3. Write the chapter's HTML from `assets/chapter-template.html`, using the
    real captured output from step 1 in any `sql-echo`/output-style code
    blocks, and real inline citations for load-bearing claims per stage 2.
+   The try-it box's `.tryit-env` line (`{{CODESPACES_URL}}` /
+   `{{WHAT_S_ALREADY_RUNNING}}`) stays a token too, for the same reason the
+   sidebar links do — filled in at Deploy time, deleted if there's no deploy.
 4. Update the sidebar nav in every existing page if the outline changed
    (new chapter inserted, title renamed) — the nav is duplicated per page
    by design (no client-side routing, no build step), so a structural
    change means a find-and-replace across every HTML file, not just one.
+   The `.sidebar-links` block is duplicated the same way; keep it identical
+   across every page for the same reason.
 
 Commit at the end of each part, not at the end of every single chapter and
 not only at the very end. This is a judgment call the reference course made
@@ -216,6 +229,12 @@ Before calling the course done:
   clean environment (fresh database if the topic uses one, fresh dependency
   install). A course that only worked once, mid-build, isn't verified.
 - Check every cited URL actually resolves.
+- `grep -r "{{CODESPACES_URL}}\|{{REPO_URL}}\|{{WHAT_S_ALREADY_RUNNING}}" book/`.
+  If deploying is still planned, leave them — Deploy step 7 resolves them all
+  at once. If it isn't (or the user hasn't decided), strip the
+  `.sidebar-links` block and the `.tryit-env` paragraph from every page now;
+  a book that ships with unresolved template tokens in visible links looks
+  broken, not unfinished.
 - Check the book renders correctly at mobile, tablet, and desktop widths.
   This is not a formality: the reference course shipped, was reported as
   "doesn't work well on mobile," and the actual bug was a one-line CSS
@@ -313,8 +332,28 @@ this skill to add there.
    (`https://codespaces.new/<owner>/<name>`, and the badge image at
    `https://github.com/codespaces/badge.svg`) to the top of the README,
    using the real owner/name discovered in steps 2-4 — never a placeholder
-   or an assumed username. Commit this separately from the deploy
-   mechanics themselves.
+   or an assumed username. While you're editing the README, make sure it
+   actually distinguishes the two things living in this one repo — the book
+   (read, nothing to install) and the code (examples/challenges, which need
+   an environment) — instead of just listing both without saying how they
+   relate; a reader landing on the repo shouldn't have to guess which of the
+   two badges gets them reading versus running.
+   Then close the loop the other direction: the book itself should not be a
+   dead end that never mentions any of this. Replace `{{CODESPACES_URL}}`
+   with `https://codespaces.new/<owner>/<name>` and `{{REPO_URL}}` with
+   `https://github.com/<owner>/<name>` across every page under `book/`
+   (the sidebar `.sidebar-links` block and each chapter's `.tryit-env` line
+   both carry these tokens — a single find-and-replace across the whole
+   `book/` directory catches all of them, the same mechanical sweep stage
+   5 already uses for nav changes). Fill `{{WHAT_S_ALREADY_RUNNING}}` in each
+   chapter's try-it box with whatever that chapter's environment actually
+   needs (e.g. "Postgres is already running there", or just "the toolchain
+   is already installed" if there's no live infra). Re-open the book in a
+   browser afterward and click both links for real — a typo'd owner/repo
+   name here fails silently (404) rather than loudly, so don't just trust
+   the sed command ran; `grep -r "{{CODESPACES_URL}}\|{{REPO_URL}}\|{{WHAT_S_ALREADY_RUNNING}}" book/`
+   should come back empty before you move on. Commit this together with the
+   README badge change, separately from the deploy mechanics themselves.
 
 ## Bundled resources
 
@@ -324,7 +363,11 @@ this skill to add there.
 - `assets/chapter-template.html`, `assets/index-template.html` — structural
   patterns to copy and fill in per course, not files to reference from afar.
   Read them when starting stage 4/5 for the sidebar-nav, callout, codeblock,
-  citation, and try-it-box patterns.
+  citation, and try-it-box patterns. Both also carry the `.sidebar-links` /
+  `.tryit-env` Codespaces-and-repo-link blocks as `{{CODESPACES_URL}}` /
+  `{{REPO_URL}}` tokens — inert until Deploy step 7 fills them in, so the
+  book always links back to a real, running environment instead of leaving
+  the reader stuck re-deriving `docker compose up` from memory.
 - `assets/devcontainer.json` — fill in during the final stage; see its
   inline comments for the two configurations (self-contained vs. live-infra).
 - `assets/docker-compose.extend.yml` — only needed alongside devcontainer

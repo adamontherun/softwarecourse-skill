@@ -13,6 +13,13 @@
   <aside class="sidebar">
     <a class="brand" href="../index.html">{{COURSE_TITLE_PART_1}} <span class="accent">{{COURSE_TITLE_PART_2}}</span></a>
     <p class="tagline">{{COURSE_TAGLINE}}</p>
+
+    <!-- Same sidebar-links block as index-template.html; keep both in sync. -->
+    <div class="sidebar-links">
+      <a class="codespace-link" href="{{CODESPACES_URL}}" target="_blank" rel="noopener">&#9654; Launch Codespace</a>
+      <a class="repo-link" href="{{REPO_URL}}" target="_blank" rel="noopener">GitHub repo &#8599;</a>
+    </div>
+
     <nav aria-label="Chapters">
       <!--
         Repeat this part-label + ol block per part of the course. Every
@@ -122,6 +129,14 @@
 
       <div class="tryit">
         <h3>⚡ Try it</h3>
+        <!--
+          Same deploy-time token as the sidebar links above: fill in during
+          Deploy step 7, delete this <p> entirely if the course never ships
+          to GitHub.
+        -->
+        <p class="tryit-env">
+          No local setup? <a href="{{CODESPACES_URL}}" target="_blank" rel="noopener">Open this chapter in GitHub Codespaces</a> — {{WHAT_S_ALREADY_RUNNING}}.
+        </p>
         <p>
           Point at the exact runnable example(s) for this chapter and the
           exact command to run them.
