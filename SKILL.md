@@ -373,6 +373,36 @@ this skill to add there.
    for the literal string `{{` afterward — it should come back empty before
    you move on. Commit this together, separately from the deploy mechanics
    themselves.
+8. Capture a screenshot of the book's cover page and embed it in the
+   README, right under the badge — a visitor deciding whether to click
+   through benefits from seeing the thing before reading a description of
+   it. Use headless Chrome against the local book (the same
+   `python3 -m http.server <port> -d book` pattern stage 4 already uses,
+   so this doesn't depend on the Pages deploy having propagated yet):
+   ```sh
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+     --headless=new --disable-gpu --hide-scrollbars \
+     --force-color-profile=srgb --window-size=1600,<height> \
+     --screenshot=book/assets/screenshots/homepage.png \
+     --virtual-time-budget=3000 "http://localhost:<port>/index.html"
+   ```
+   (Linux: the binary is usually `google-chrome` or `chromium` on PATH.)
+   There's no universal `<height>` — take one shot tall (e.g. 1600×1150),
+   look at it, then pick a height that crops cleanly right at a part-label
+   boundary (ending mid-chapter-list looks unfinished; ending right before
+   "Part II · ..." reads as an intentional preview). This course's own
+   number won't transfer to a course with a different intro-paragraph
+   length or chapter count — always look before picking the number.
+   Confirm the capture actually came out in light mode (fresh headless
+   profiles default to it, but verify — don't assume). Downscale to a
+   reasonable README width and compress before committing: `sips -Z 1200`
+   then `pngquant --quality=70-90 --strip --force -o file.png file.png` if
+   `pngquant` is available (skip compression, don't fail the stage, if it
+   isn't — a slightly larger PNG beats blocking on a missing tool). Embed
+   it in the README right after the badge, wrapped in a link back to
+   `{{PAGES_URL}}` (see `assets/readme-template.md`), with real descriptive
+   alt text (what the image actually shows — cover, sidebar TOC, hero copy
+   — not "screenshot").
 
 ## Bundled resources
 

@@ -37,6 +37,15 @@
 [![Read the Book](https://img.shields.io/badge/📖_Read_the_Book-{{PAGES_HOST_PATH}}-{{BRAND_HEX}})]({{PAGES_URL}})
 
 <!--
+  Screenshot of the book's cover page, captured and linked back to the book
+  during Deploy step 8 — see SKILL.md for the capture/crop/compress
+  procedure. {{SCREENSHOT_PATH}} is typically
+  `book/assets/screenshots/homepage.png`. Write real alt text describing
+  what's actually visible (cover copy, sidebar TOC, etc.), not "screenshot".
+-->
+[![{{SCREENSHOT_ALT_TEXT}}]({{SCREENSHOT_PATH}})]({{PAGES_URL}})
+
+<!--
   This paragraph exists because a reader landing on the repo (not the book)
   has no way to know these are two different things with two different
   audiences. Say it plainly. Adapt "terminal with Postgres already running"
