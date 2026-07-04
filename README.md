@@ -37,19 +37,106 @@ see [Origin](#origin) below.
 
 ## Prerequisites
 
-- [Claude Code](https://claude.com/claude-code)
-- [uv](https://docs.astral.sh/uv/) or the relevant toolchain for whatever
-  topic you ask for (the skill figures out which one per topic)
-- [Docker](https://docs.docker.com/get-docker/), only if your topic needs
-  live infrastructure
-- [GitHub CLI](https://cli.github.com/) (`gh`), only if you want the
-  publish/deploy step — and only if you're already logged in
-  (`gh auth login`). The skill never asks for or stores a credential of
-  any kind; it only checks whether `gh` is already authenticated and uses
-  whatever account that resolves to, live, every time. It cannot deploy on
-  your behalf without your own `gh` login already in place.
+### 1. Claude Code
 
-## Install
+Pick one:
+
+```sh
+# macOS, Linux, WSL — native installer (recommended)
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+```sh
+# macOS — Homebrew
+brew install --cask claude-code
+```
+
+```sh
+# any platform — npm (requires Node.js 22+)
+npm install -g @anthropic-ai/claude-code
+```
+
+Windows PowerShell: `irm https://claude.ai/install.ps1 | iex`
+Windows WinGet: `winget install Anthropic.ClaudeCode`
+
+Verify: `claude --version`. First run (`claude`) will prompt you to log in
+with a Pro/Max/Team/Enterprise/Console account — the free claude.ai plan
+doesn't include Claude Code.
+
+### 2. The toolchain your topic needs
+
+The skill detects this per topic and tells you if something's missing, but
+having it ready avoids a mid-build interruption. The two most common:
+
+```sh
+# uv — for any Python topic
+curl -LsSf https://astral.sh/uv/install.sh | sh        # macOS/Linux
+# or: brew install uv                                   # macOS
+```
+
+Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+Verify: `uv --version`
+
+```sh
+# Node.js — for any JS/TS topic (v22+ recommended)
+brew install node          # macOS
+# or download from https://nodejs.org
+```
+
+Verify: `node --version`
+
+For anything else (Rust, Go, etc.) install that ecosystem's own standard
+toolchain — `rustup`/`cargo`, the Go toolchain, and so on.
+
+### 3. Docker — only if your topic needs live infrastructure
+
+Install [Docker Desktop](https://docs.docker.com/get-docker/) (macOS,
+Windows, Linux all covered on that page). Verify: `docker --version` and
+`docker compose version`.
+
+### 4. GitHub CLI (only if you want to deploy)
+
+```sh
+brew install gh                        # macOS
+winget install --id GitHub.cli         # Windows
+```
+
+Debian/Ubuntu:
+
+```sh
+(type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
+	&& sudo mkdir -p -m 755 /etc/apt/keyrings \
+	&& out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+	&& cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+	&& sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+	&& sudo mkdir -p -m 755 /etc/apt/sources.list.d \
+	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+	&& sudo apt update \
+	&& sudo apt install gh -y
+```
+
+Fedora/RHEL: `sudo dnf install dnf5-plugins && sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo && sudo dnf install gh`
+
+Then authenticate — this is the only account setup step, do it once:
+
+```sh
+gh auth login --web
+```
+
+This opens your browser, you click "Authorize," and it's done. Confirm it
+worked:
+
+```sh
+gh auth status
+```
+
+You should see `✓ Logged in to github.com account <your-username>`. The
+skill never asks for or stores a credential of any kind — it only checks
+`gh auth status` and reads the logged-in account from it, live, every
+time it deploys. If you skip this step, the skill will tell you to run
+`gh auth login` and wait rather than trying to deploy anyway.
+
+## Install the skill
 
 Clone this repo directly into your Claude Code skills directory:
 
@@ -59,7 +146,9 @@ git clone https://github.com/adamontherun/softwarecourse-skill.git ~/.claude/ski
 
 That's it — Claude Code picks up any `SKILL.md` it finds under
 `~/.claude/skills/<name>/` automatically. No build step, no dependencies
-to install for the skill itself.
+to install for the skill itself. Confirm it's picked up by starting
+`claude` in any project and running `/softwarecourse` — it should show up
+as an available skill.
 
 To update later:
 
@@ -67,35 +156,57 @@ To update later:
 cd ~/.claude/skills/softwarecourse && git pull
 ```
 
-## Use
+## Build a course
 
-In a Claude Code session, just ask for what you want:
+Start Claude Code (`claude`) in an empty folder for your new course, then
+either use the slash command or plain language:
 
 ```
 /softwarecourse build me a course on Redis
 ```
 
-or without the slash, plain language works too — anything like "make me a
-tutorial book on React Server Components" or "I want to learn httpx,
-create something like a course" will trigger it.
+```
+I want to learn httpx, make me something like a tutorial book with exercises
+```
 
-Claude will interview you first (audience level, rough depth, ecosystem,
+Claude interviews you first (audience level, rough depth, ecosystem,
 whether live infra is needed) before writing anything, since those
 decisions are much cheaper to get right up front than to redo after twelve
-chapters exist. From there it researches, scaffolds, and builds the course
-in staged, git-committed steps — this can take a while for a full course
-(expect it to behave like a real, careful multi-hour project, not a
-one-shot generation).
+chapters exist. Answer its questions, then it researches, scaffolds, and
+builds the course in staged, git-committed steps. Expect this to take a
+while for a full course — it behaves like a real, careful multi-hour
+project, not a one-shot generation.
 
-To publish an already-built course:
+## Publish a course to GitHub
 
-```
-deploy this course to GitHub
-```
+Do the [GitHub CLI setup](#4-github-cli-only-if-you-want-to-deploy)
+above once, first, if you haven't. Then, once your course is built:
 
-This only runs when you ask for it — creating a public repo and pushing
-is a visible action, not something that happens as a side effect of
-building content.
+1. In the same Claude Code session (or a new one, from inside the
+   course's folder), say:
+   ```
+   deploy this course to GitHub
+   ```
+2. Claude checks `gh auth status`. If you're not logged in, it stops and
+   tells you to run `gh auth login --web` — it will not proceed without
+   your own authenticated session already in place.
+3. Claude asks you to confirm the repo name and whether it should be
+   public or private (note: GitHub Pages on a private repo requires
+   GitHub Pro/Team/Enterprise — use public if you want the site reachable
+   on a free account).
+4. Claude runs the equivalent of:
+   ```sh
+   gh repo create <your-account>/<repo-name> --public --source=. --remote=origin --push
+   gh api -X POST repos/<your-account>/<repo-name>/pages -f build_type=workflow -f 'source[branch]=main' -f 'source[path]=/'
+   ```
+   using your live `gh` account, never a hardcoded one, and waits for the
+   deploy workflow to actually finish (not just for these commands to exit).
+5. You'll get back two URLs: the repo
+   (`https://github.com/<your-account>/<repo-name>`) and the live book
+   (`https://<your-account>.github.io/<repo-name>/`) — both already
+   verified reachable before Claude tells you it's done. No manual step
+   in GitHub's web UI is required; enabling Pages via the API above
+   handles what you'd otherwise click through in Settings → Pages.
 
 ## Repo structure
 
