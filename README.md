@@ -12,8 +12,11 @@ This isn't a template generator. Every factual claim gets checked against
 real documentation before it's written down, every code example actually
 gets run (never fabricated output), and every challenge's tests get
 verified both ways (pass against the solution, fail against the untouched
-skeleton). It was built by actually building a full course with it first —
-see [Origin](#origin) below.
+skeleton). A separate fact-check pass — a fresh subagent with no memory of
+drafting the content, re-verifying every citation and flagging uncited
+claims — runs after every part, because the agent that wrote a claim is a
+poor judge of its own mistake. It was built by actually building a full
+course with it first — see [Origin](#origin) below.
 
 ## What you get
 

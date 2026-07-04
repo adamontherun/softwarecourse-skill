@@ -238,6 +238,59 @@ patterns that don't grep well. This pass must never change what a chapter
 claims technically — if fixing the prose reveals the underlying claim was
 vague, that's an unfinished research task, not a wording fix.
 
+### N. Fact-check
+
+Once a part is drafted and humanized, run an independent fact-check pass
+over it — with a fresh subagent, not the agent that just wrote the
+content. The agent that stated a claim already believes it; it's a poor
+judge of its own mistake. Use the Agent tool with `subagent_type:
+general-purpose` (Explore is read-only search and explicitly wrong for
+this — it reads excerpts, not whole pages, and isn't meant for open-ended
+judgment calls), once per part, same granularity as Humanize. Brief it
+to, itself:
+
+- Read the actual chapter HTML files fresh — nothing carried over from
+  the drafting conversation.
+- Extract every load-bearing claim: an exact default value, a "the docs
+  recommend X," a benchmark or performance number, a documented gotcha, a
+  version-specific behavior claim — whether or not it already has an
+  inline citation.
+- For every claim that already has a citation, `WebFetch` the cited URL
+  and confirm the page actually *supports* the claim as written, not just
+  that the link resolves. A citation to a page that's about something
+  adjacent reads as sourced but isn't, which is worse than no citation at
+  all. If it's official docs, note whether the page still says the same
+  thing — docs get rewritten, and a link checked during stage 2 can point
+  at different text by the time a course ships.
+- For every load-bearing claim *without* a citation, decide whether a
+  skeptical reader would want one. If so, research it fresh (same
+  source-hierarchy discipline as stage 2 — official docs first) and either
+  find a real citation or flag the claim as unverified.
+- Apply stage 2's supply-chain skepticism here too: if fresh research
+  contradicts what `notes/research.md` originally concluded — especially
+  anything that would change what a reader is told to install — the
+  contradiction itself is the finding, and the primary source wins over
+  whichever result is more recent or more corroborated.
+- Report back a plain list, one entry per finding: the file, the exact
+  claim text, what's wrong (dead link, citation doesn't support the
+  claim, missing citation on a claim that needs one, the claim itself
+  looks outdated or wrong), and a suggested fix. The subagent only
+  diagnoses — it doesn't edit anything.
+
+Review every returned finding yourself before touching a file: a
+subagent's finding describes what it believes it found, not a verified
+fact on its own — the same trust-but-verify discipline as any other
+subagent result. Fix what's genuinely wrong, then commit the fact-check
+corrections separately from the content commit they're correcting; a
+reviewable "fact-check pass, N corrections" commit is far more useful
+later than silently folding fixes into the original content.
+
+This isn't only a during-the-build step. It's the right tool for
+auditing a course that's already shipped, too — if a reader reports an
+error, or enough time has passed that stage 2's "current" research might
+have drifted, rerun this stage against the live book instead of assuming
+the original research is still accurate.
+
 ### Final. Verify, then wire up online access
 
 Before calling the course done:
