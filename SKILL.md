@@ -156,6 +156,20 @@ comments for the fix, and for why the README only ever gets one badge,
 pointing to the book, rather than a second Codespaces badge of its own).
 Commit.
 
+Set up the ecosystem's own lint/format/type-check tooling right now too —
+Python gets `ruff` (lint + format) and `mypy`; JS/TS gets `eslint` +
+`prettier` (+ `tsc` if TS); Rust gets `cargo clippy`/`cargo fmt`; Go gets
+`go vet`/`gofmt`. Run it clean before the first content commit, the same
+way the live-infra round-trip gets proven before content gets built on top
+of it. **This is not optional polish, and not something to bolt on at the
+end.** A real retrofit of this exact tooling onto an already-finished
+twelve-chapter course surfaced 56 lint violations and 17 type errors in a
+single pass — nothing individually serious, but all of it accumulated
+because nothing caught it chapter by chapter. Setting the tool up in stage
+3 and running it as part of stage 5's per-part routine (see below) means
+each part surfaces its own small, easy-to-read diff instead of one huge
+one at the end.
+
 ### 4. Build the book shell
 
 Create `book/index.html` from `assets/index-template.html` and confirm the
@@ -219,6 +233,10 @@ chapter in that part:
    change means a find-and-replace across every HTML file, not just one.
    The `.sidebar-links` block is duplicated the same way; keep it identical
    across every page for the same reason.
+5. Run the lint/format/type-check tooling set up in stage 3 now, on just
+   this part's new/changed files, and fix everything before moving to the
+   next part. This is what keeps stage 3's warning from becoming real: a
+   small diff each part, not a 56-violation pile at the end.
 
 Commit at the end of each part, not at the end of every single chapter and
 not only at the very end. This is a judgment call the reference course made
@@ -339,6 +357,28 @@ Before calling the course done:
   preview; StackBlitz's WebContainers can't open real sockets or databases,
   so never offer it for a course with live infra — it will silently fail
   the parts that need a real connection.
+- Fill in the devcontainer's `customizations.vscode` block (extensions +
+  format-on-save settings for the ecosystem's own linter/formatter — see
+  the template's comments for the per-ecosystem extension lists) so a
+  fresh Codespace opens with a working, linted editor instead of a bare
+  shell. Run the lint/format/type-check tooling across the *entire* repo
+  once more here too — stage 5's per-part passes catch drift within a
+  part, but this is the first point where the whole book has existed
+  together, and it's cheap insurance against something stage 5 missed.
+- Copy `assets/ci-template.yml` to `.github/workflows/ci.yml` and fill in
+  its tokens: the ecosystem's real setup action and lint/format/type-check
+  commands, and — if the course has live infra — a `services:` block
+  copied from `compose.yaml`'s actual image/env/port (don't invent new
+  credentials). Keep the "skeletons must still fail, solutions must pass"
+  pair intact; it's the part that actually catches a broken challenge test,
+  not just a broken example. Delete the `devcontainer-smoke-test` job if
+  this course has no devcontainer — otherwise leave it; it builds the real
+  `.devcontainer/devcontainer.json` and is the only automated check that
+  would ever catch a Codespaces-specific bug (see that job's own comments
+  in the template for why this matters more than it looks like it should).
+  This workflow only proves anything once it's actually run — Deploy's
+  final step covers watching it go green for real, the same discipline as
+  watching the Pages deploy workflow.
 - Copy `assets/pages-deploy.yml` to `.github/workflows/pages-deploy.yml` so
   the book publishes to GitHub Pages on push to the repo's actual default
   branch — check what that branch is actually called (`git branch
@@ -494,6 +534,19 @@ this skill to add there.
    a stray trailing comma before a search engine does). Grep the whole repo
    for the literal string `{{` one more time — by this step it should be
    empty everywhere, not just in `README.md`/`book/`.
+10. Watch `.github/workflows/ci.yml` actually run and go green —
+    `gh run list --repo <owner>/<name>` until it shows `completed`/
+    `success`, the same way step 6 watched the Pages deploy. Don't take
+    "the workflow file looks right" as good enough; pull the actual log
+    for both jobs (`gh run view --job=<id> --log`) and confirm the lint,
+    format, type-check, and both directions of the challenge-test step
+    really ran and passed, and — if the `devcontainer-smoke-test` job
+    exists — that its log shows the real example's actual output, not
+    just a green checkmark. A workflow that's misconfigured to skip its
+    own steps still shows green; only the log proves it did anything. If
+    it fails, fix the real problem in the repo (never edit the workflow to
+    make a real failure disappear) and push again until the log shows it
+    passing for real.
 
 ## Bundled resources
 
@@ -526,7 +579,8 @@ this skill to add there.
   book's own sidebar already links to) — read them before touching the
   badge row by hand.
 - `assets/devcontainer.json` — fill in during the final stage; see its
-  inline comments for the two configurations (self-contained vs. live-infra).
+  inline comments for the two configurations (self-contained vs. live-infra)
+  and the `customizations.vscode` extension lists per ecosystem.
 - `assets/docker-compose.extend.yml` — only needed alongside devcontainer
   Option B (live infra); layers a dev-tooling container on the course's
   own compose.yaml without editing it. Read its comments on the
@@ -534,6 +588,11 @@ this skill to add there.
 - `assets/pages-deploy.yml` — copy as-is into `.github/workflows/`, just
   double-check the `branches:` trigger matches the repo's actual default
   branch.
+- `assets/ci-template.yml` — copy to `.github/workflows/ci.yml` during the
+  final stage; fill in per-ecosystem lint/format/type-check commands and,
+  if applicable, the live-infra service block and the devcontainer smoke
+  test. This is a proven file, not a guess — see its own header comment
+  for what it was actually verified against.
 - `references/humanizer-checklist.md` — read in full before the humanize
   pass on each part; it's long on purpose (33 specific patterns with the
   reasoning behind each) and not worth summarizing from memory each time.

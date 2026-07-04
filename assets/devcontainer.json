@@ -46,5 +46,34 @@
   // Forward whatever port(s) a reader would connect to (the live-infra
   // service's port, or a demo API server's port) so Codespaces auto-opens
   // a preview / shows a forwarded-port link when it starts.
-  "forwardPorts": []
+  "forwardPorts": [],
+  // Label each forwarded port and default it to "silent" (don't pop a
+  // notification) unless it's something a reader is meant to click open
+  // immediately, e.g. a demo web server, in which case use "openBrowser".
+  "portsAttributes": {
+    "{{PORT}}": { "label": "{{WHAT_THIS_PORT_IS}}", "onAutoForward": "silent" }
+  },
+
+  // A fresh Codespace with no editor tooling configured is a worse first
+  // experience than a local clone with an IDE the reader already set up
+  // themselves — match that baseline. Pick the extensions for whatever
+  // ecosystem this course actually uses; don't include ones for stacks
+  // this course doesn't touch.
+  //   Python:  ms-python.python, ms-python.vscode-pylance,
+  //            charliermarsh.ruff, ms-python.mypy-type-checker
+  //   JS/TS:   dbaeumer.vscode-eslint, esbenp.prettier-vscode
+  //            (+ ms-vscode.vscode-typescript-next for TS)
+  //   Rust:    rust-lang.rust-analyzer
+  //   Go:      golang.go
+  "customizations": {
+    "vscode": {
+      "extensions": ["{{EXTENSION_ID}}"],
+      // Wire the linter/formatter as format-on-save so it's active from
+      // first open, not something a reader has to discover and configure.
+      // The exact settings block is ecosystem-specific — see
+      // SKILL.md's Final-stage lint/CI section for the Python example
+      // this was verified against.
+      "settings": {}
+    }
+  }
 }

@@ -33,7 +33,22 @@ course with it first — see [Origin](#origin) below.
 - Live infrastructure via Docker Compose when the topic genuinely needs a
   real service (a database, a broker) — and *not* when it doesn't.
 - A `.devcontainer/` setup so the course opens in GitHub Codespaces with
-  the exact same infrastructure a local clone gets.
+  the exact same infrastructure a local clone gets, VS Code extensions for
+  the ecosystem installed automatically, and the linter wired up as the
+  format-on-save formatter from first open.
+- Lint, format, and type-checking from the ecosystem's own tools (ruff +
+  mypy for Python, eslint + prettier + tsc for JS/TS, clippy + fmt for
+  Rust, and so on), set up from the first commit rather than bolted on
+  afterward — a real retrofit of this onto an already-finished course
+  surfaced 56 lint violations and 17 type errors in one pass, which is
+  exactly the pile-up doing it from day one avoids.
+- A CI workflow that runs lint/format/type-check plus the challenge suite
+  in both directions (must fail against skeletons, must pass against
+  solutions) against a real instance of the course's live infra if it has
+  any — and, if there's a devcontainer, a second job that builds the
+  *actual* `.devcontainer/devcontainer.json` and runs a real example
+  inside it, the only automated check that would catch a Codespaces-
+  specific bug rather than relying on a one-time manual check.
 - Optional one-shot publishing to GitHub: creates the repo under your own
   authenticated account, pushes, enables GitHub Pages, and wires up the
   Codespaces badge.
@@ -242,10 +257,13 @@ assets/
   sitemap-template.xml          sitemap.xml starting point (one <url>
                                   per chapter, generated at deploy)
   llms-template.txt             llms.txt starting point (llmstxt.org)
-  devcontainer.json              generic devcontainer template
+  devcontainer.json              generic devcontainer template, incl. VS
+                                  Code extensions/settings per ecosystem
   docker-compose.extend.yml      layers dev tooling onto a course's own
                                   compose.yaml without editing it
   pages-deploy.yml               GitHub Pages deploy workflow
+  ci-template.yml                lint/format/type-check/test CI, incl. a
+                                  devcontainer-build smoke test
 references/
   humanizer-checklist.md         33 patterns that make prose read as
                                   AI-generated, applied as an explicit
