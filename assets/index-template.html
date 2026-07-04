@@ -5,8 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{COURSE_TITLE}} — {{COURSE_TAGLINE}}</title>
 <meta name="description" content="{{ONE_SENTENCE_SEO_DESCRIPTION}}">
+<!--
+  SEO/social block. {{KEYWORDS}}, {{AUTHOR}}, and {{BRAND_HEX_WITH_HASH}}
+  (same brand color as readme-template.md's {{BRAND_HEX}}, just with the
+  leading "#" a CSS color needs that a shields.io URL can't have) are known
+  right now (stage 3/4) — fill them in immediately. {{PAGES_URL}} and
+  {{OG_IMAGE_URL}} (= {{PAGES_URL}} + "assets/screenshots/homepage.png",
+  once Deploy step 8 has produced that screenshot) can't resolve until
+  Deploy — leave those as literal tokens until step 7/9 the way every other
+  deploy-time token in this file already works. Reuse the exact same
+  {{ONE_SENTENCE_SEO_DESCRIPTION}} for og:description/twitter:description
+  so there's only one description to keep accurate, not three.
+-->
+<meta name="keywords" content="{{KEYWORDS}}">
+<meta name="author" content="{{AUTHOR}}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{PAGES_URL}}">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{COURSE_TITLE}}">
+<meta property="og:title" content="{{COURSE_TITLE}} — {{COURSE_TAGLINE}}">
+<meta property="og:description" content="{{ONE_SENTENCE_SEO_DESCRIPTION}}">
+<meta property="og:url" content="{{PAGES_URL}}">
+<meta property="og:image" content="{{OG_IMAGE_URL}}">
+<meta property="og:image:width" content="{{OG_IMAGE_WIDTH}}">
+<meta property="og:image:height" content="{{OG_IMAGE_HEIGHT}}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{COURSE_TITLE}} — {{COURSE_TAGLINE}}">
+<meta name="twitter:description" content="{{ONE_SENTENCE_SEO_DESCRIPTION}}">
+<meta name="twitter:image" content="{{OG_IMAGE_URL}}">
+<meta name="theme-color" content="{{BRAND_HEX_WITH_HASH}}">
 <script>document.documentElement.dataset.theme=localStorage.getItem("book-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");</script>
 <link rel="stylesheet" href="assets/style.css">
+<!--
+  Schema.org Course JSON-LD. "hasPart" needs one {"@type":"Chapter",...}
+  entry per chapter in the course, generated the same way stage 5 already
+  keeps the sidebar nav and this page's own toc-parts in sync — script it
+  (see SKILL.md's Deploy step 9) rather than hand-writing N near-identical
+  objects. Resolved at Deploy alongside the other tokens in this file.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{COURSE_TITLE}}",
+  "description": "{{ONE_SENTENCE_SEO_DESCRIPTION}}",
+  "url": "{{PAGES_URL}}",
+  "image": "{{OG_IMAGE_URL}}",
+  "provider": {"@type": "Person", "name": "{{AUTHOR}}", "url": "{{AUTHOR_URL}}"},
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "hasPart": [
+    {"@type": "Chapter", "position": 1, "name": "{{CHAPTER_TITLE}}", "description": "{{ONE_LINE_CHAPTER_HOOK}}", "url": "{{PAGES_URL}}chapters/ch{{CH_NUM_PADDED}}.html"}
+  ]
+}
+</script>
 </head>
 <body>
 <div class="book">

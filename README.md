@@ -40,6 +40,13 @@ see [Origin](#origin) below.
   entirely and run that chapter's code in Codespaces instead. A reader
   landing on any single chapter page is never more than one click from a
   running environment.
+- Full SEO and social metadata on every page (canonical links, keywords,
+  Open Graph and Twitter Card tags using a real screenshot of the book as
+  the share image), Schema.org `Course`/`Chapter` JSON-LD, a `sitemap.xml`
+  and `robots.txt`, and an `llms.txt` following the llmstxt.org convention
+  so LLM crawlers get a clean chapter-by-chapter index of the course.
+- A screenshot of the book's own cover page, embedded in the README so a
+  repo visitor sees what they're getting before reading a description of it.
 
 ## Prerequisites
 
@@ -228,6 +235,10 @@ assets/
   index-template.html           structural pattern for the cover/TOC page
   readme-template.md            repo-root README starting point, incl.
                                   the book/Codespaces badge-pairing rules
+  robots-template.txt           robots.txt starting point
+  sitemap-template.xml          sitemap.xml starting point (one <url>
+                                  per chapter, generated at deploy)
+  llms-template.txt             llms.txt starting point (llmstxt.org)
   devcontainer.json              generic devcontainer template
   docker-compose.extend.yml      layers dev tooling onto a course's own
                                   compose.yaml without editing it

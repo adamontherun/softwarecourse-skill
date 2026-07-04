@@ -173,6 +173,13 @@ them in everywhere at once (see its step 7). If you already know at this
 point that the course will never be deployed, delete the block instead of
 carrying dead tokens through the whole build.
 
+Both templates also ship a `<head>` SEO/social/JSON-LD block. Fill in
+`{{KEYWORDS}}`, `{{AUTHOR}}`, `{{BRAND_HEX_WITH_HASH}}`, and every
+description token now — they're all already known and don't depend on
+deploying anything. Leave `{{PAGES_URL}}`, `{{OG_IMAGE_URL}}`, and the
+JSON-LD `hasPart`/per-chapter entries as literal tokens; Deploy step 9
+resolves those once the real domain and the homepage screenshot both exist.
+
 If this course lives in a different directory than wherever the current
 session's tooling is already anchored, an interactive browser-preview tool
 may still be pointed at that original directory and quietly serve the wrong
@@ -403,6 +410,37 @@ this skill to add there.
    `{{PAGES_URL}}` (see `assets/readme-template.md`), with real descriptive
    alt text (what the image actually shows — cover, sidebar TOC, hero copy
    — not "screenshot").
+9. Finish the SEO/social/structured-data layer now that `{{PAGES_URL}}` and
+   the screenshot both exist. Every book page already carries the
+   meta/OG/Twitter block and a JSON-LD script from
+   `index-template.html`/`chapter-template.html` (stage 4/5 filled in the
+   content-known tokens — `{{KEYWORDS}}`, `{{AUTHOR}}`,
+   `{{BRAND_HEX_WITH_HASH}}`, the descriptions); this step resolves the
+   deploy-only ones (`{{PAGES_URL}}`, `{{OG_IMAGE_URL}}` = `{{PAGES_URL}}` +
+   `assets/screenshots/homepage.png`, `{{OG_IMAGE_WIDTH}}`/`{{OG_IMAGE_HEIGHT}}`
+   from the actual PNG dimensions) the same way step 7 resolved
+   `{{CODESPACES_URL}}`/`{{REPO_URL}}` — one scripted pass, not per-file
+   hand edits. Then generate the three root-level files that don't have a
+   per-page home:
+   - `robots.txt` from `assets/robots-template.txt`.
+   - `sitemap.xml` from `assets/sitemap-template.xml` — one `<url>` per
+     chapter plus the cover page, same enumeration you already have from
+     filling in the JSON-LD `hasPart` array a moment ago; don't write this
+     by hand separately from that array, generate both from one list of
+     chapters so they can't disagree with each other.
+   - `llms.txt` from `assets/llms-template.txt` — mirrors the book's table
+     of contents exactly (same part/chapter loop again).
+   All three are static files served from wherever `book/` publishes to
+   (for the reference course, GitHub Pages serves `book/` as site root, so
+   they land at `/robots.txt` etc. — confirm your course's Pages workflow
+   does the same before assuming the paths line up). Verify before
+   committing: `curl` each of `{{PAGES_URL}}robots.txt`,
+   `{{PAGES_URL}}sitemap.xml`, `{{PAGES_URL}}llms.txt` for a real 200 once
+   deployed, and validate every page's JSON-LD is well-formed JSON (a
+   one-line `python3 -c "import json,re; ..."` sweep across `book/` catches
+   a stray trailing comma before a search engine does). Grep the whole repo
+   for the literal string `{{` one more time — by this step it should be
+   empty everywhere, not just in `README.md`/`book/`.
 
 ## Bundled resources
 
@@ -416,7 +454,17 @@ this skill to add there.
   `.tryit-env` Codespaces-and-repo-link blocks as `{{CODESPACES_URL}}` /
   `{{REPO_URL}}` tokens — inert until Deploy step 7 fills them in, so the
   book always links back to a real, running environment instead of leaving
-  the reader stuck re-deriving `docker compose up` from memory.
+  the reader stuck re-deriving `docker compose up` from memory. Both also
+  carry a `<head>` SEO/social/JSON-LD block — fill its content-known tokens
+  during stage 4/5, leave `{{PAGES_URL}}`/`{{OG_IMAGE_URL}}`/the JSON-LD
+  chapter entries for Deploy step 9.
+- `assets/robots-template.txt`, `assets/sitemap-template.xml`,
+  `assets/llms-template.txt` — root-level files with no per-page home of
+  their own, generated during Deploy step 9 once `{{PAGES_URL}}` is known.
+  Generate the sitemap's URL list and the JSON-LD `hasPart` array from the
+  same one list of chapters rather than writing each separately — that's
+  the difference between two files that agree with each other by
+  construction and two files a future edit can quietly desync.
 - `assets/readme-template.md` — the repo-root `README.md` starting point,
   filled in during stage 3 and finished during Deploy step 7. Its own
   comments explain why it carries exactly one badge (a color-matched

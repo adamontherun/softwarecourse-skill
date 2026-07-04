@@ -4,8 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ch {{CH_NUM}} · {{CHAPTER_TITLE}} — {{COURSE_TITLE}}</title>
+<!--
+  Same SEO/social pattern as index-template.html — read that file's comment
+  on which tokens resolve now (KEYWORDS, AUTHOR, BRAND_HEX_WITH_HASH) vs.
+  at Deploy (PAGES_URL, OG_IMAGE_URL). {{CHAPTER_META_DESCRIPTION}} should be the
+  chapter's own {{ONE_LINE_CHAPTER_HOOK}} plus a "Chapter N of {{COURSE_TITLE}},
+  Part {{PART_ROMAN}} · {{PART_TITLE}}" suffix, not a copy of the course
+  description — a search result or share card for chapter 7 should say
+  what chapter 7 is about.
+-->
+<meta name="description" content="{{CHAPTER_META_DESCRIPTION}}">
+<meta name="keywords" content="{{KEYWORDS}}">
+<meta name="author" content="{{AUTHOR}}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{PAGES_URL}}chapters/ch{{CH_NUM_PADDED}}.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="{{COURSE_TITLE}}">
+<meta property="og:title" content="Ch {{CH_NUM}} · {{CHAPTER_TITLE}} — {{COURSE_TITLE}}">
+<meta property="og:description" content="{{CHAPTER_META_DESCRIPTION}}">
+<meta property="og:url" content="{{PAGES_URL}}chapters/ch{{CH_NUM_PADDED}}.html">
+<meta property="og:image" content="{{OG_IMAGE_URL}}">
+<meta property="og:image:width" content="{{OG_IMAGE_WIDTH}}">
+<meta property="og:image:height" content="{{OG_IMAGE_HEIGHT}}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ch {{CH_NUM}} · {{CHAPTER_TITLE}} — {{COURSE_TITLE}}">
+<meta name="twitter:description" content="{{CHAPTER_META_DESCRIPTION}}">
+<meta name="twitter:image" content="{{OG_IMAGE_URL}}">
+<meta name="theme-color" content="{{BRAND_HEX_WITH_HASH}}">
 <script>document.documentElement.dataset.theme=localStorage.getItem("book-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");</script>
 <link rel="stylesheet" href="../assets/style.css">
+<!--
+  Chapter JSON-LD. previousItem/nextItem reuse the exact same neighbor
+  chapters as the chapter-nav links at the bottom of this page (and are
+  absent on chapter 1 / the last chapter for the same reason those <nav>
+  links only show one direction there) — don't let the two drift apart.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Chapter",
+  "position": {{CH_NUM}},
+  "name": "{{CHAPTER_TITLE}}",
+  "description": "{{ONE_LINE_CHAPTER_HOOK}}",
+  "url": "{{PAGES_URL}}chapters/ch{{CH_NUM_PADDED}}.html",
+  "image": "{{OG_IMAGE_URL}}",
+  "inLanguage": "en",
+  "isPartOf": {"@type": "Course", "name": "{{COURSE_TITLE}}", "url": "{{PAGES_URL}}"},
+  "previousItem": "{{PAGES_URL}}chapters/ch{{PREV_NUM_PADDED}}.html",
+  "nextItem": "{{PAGES_URL}}chapters/ch{{NEXT_NUM_PADDED}}.html"
+}
+</script>
 </head>
 <body>
 <div class="book">
