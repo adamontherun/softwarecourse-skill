@@ -226,6 +226,8 @@ assets/
   vendor/highlight.min.js       vendored syntax highlighter, no CDN needed
   chapter-template.html         structural pattern for a chapter page
   index-template.html           structural pattern for the cover/TOC page
+  readme-template.md            repo-root README starting point, incl.
+                                  the book/Codespaces badge-pairing rules
   devcontainer.json              generic devcontainer template
   docker-compose.extend.yml      layers dev tooling onto a course's own
                                   compose.yaml without editing it
