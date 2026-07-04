@@ -1,0 +1,58 @@
+{
+  "skill_name": "softwarecourse",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "build me a course on Redis, something like a book I can actually work through with runnable examples",
+      "expected_output": "A scoped-out course plan (after an interview about audience/depth/language), a git repo scaffolded in the right ecosystem, live Redis infra via Docker (Redis is inherently a live service), and a rendering book/index.html + book shell using the bundled design system. Should NOT proceed to writing full chapter content in this bounded test.",
+      "files": [],
+      "assertions": [
+        "git_initialized",
+        "book_shell_exists",
+        "design_system_reused",
+        "mobile_fix_present",
+        "research_happened",
+        "citations_present",
+        "live_infra_correct",
+        "no_full_chapters_yet",
+        "assumptions_documented"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I want to learn React Server Components — can you make me something like a tutorial book, with chapters and code I can run myself?",
+      "expected_output": "A scoped-out course plan for a pure frontend/JS/TS topic, a git repo scaffolded with npm/pnpm conventions (not uv/Python), NO unnecessary Docker infra (RSC needs a Next.js dev server, not a database), and a rendering book shell. Should note StackBlitz eligibility for later. Should NOT proceed to full chapter content in this bounded test.",
+      "files": [],
+      "assertions": [
+        "git_initialized",
+        "book_shell_exists",
+        "design_system_reused",
+        "mobile_fix_present",
+        "correct_ecosystem",
+        "research_happened",
+        "citations_present",
+        "no_unnecessary_infra",
+        "no_full_chapters_yet",
+        "assumptions_documented"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "make me a learning course for the python httpx library, book-style with examples and exercises",
+      "expected_output": "A scoped-out course plan for a self-contained Python library (no real external service needed — httpx can be taught against a local test server/httpbin-style mock), a git repo using uv/pytest conventions, correctly judging that full Docker Compose infra is NOT needed here (a good test of the conditional-infra logic not over-triggering), and a rendering book shell. Should NOT proceed to full chapter content in this bounded test.",
+      "files": [],
+      "assertions": [
+        "git_initialized",
+        "book_shell_exists",
+        "design_system_reused",
+        "mobile_fix_present",
+        "correct_ecosystem",
+        "research_happened",
+        "citations_present",
+        "no_unnecessary_infra",
+        "no_full_chapters_yet",
+        "assumptions_documented"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{COURSE_TITLE}} — {{COURSE_TAGLINE}}</title>
+<meta name="description" content="{{ONE_SENTENCE_SEO_DESCRIPTION}}">
+<script>document.documentElement.dataset.theme=localStorage.getItem("book-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");</script>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="book">
+
+  <aside class="sidebar">
+    <a class="brand" href="index.html">{{COURSE_TITLE_PART_1}} <span class="accent">{{COURSE_TITLE_PART_2}}</span></a>
+    <p class="tagline">{{COURSE_TAGLINE}}</p>
+
+    <nav aria-label="Chapters">
+      <!-- Same full nav block as chapter-template.html, paths without "../" since index.html lives at the book root. -->
+    </nav>
+
+    <button class="theme-toggle" type="button">☾ Dark mode</button>
+  </aside>
+
+  <button class="menu-btn" type="button" aria-label="Toggle chapter list">☰ Chapters</button>
+
+  <main>
+    <article class="cover">
+      <p class="kicker">A hands-on course</p>
+      <h1>{{COURSE_TITLE_PART_1}} <em style="color:var(--brand);font-style:normal">{{COURSE_TITLE_PART_2}}</em></h1>
+      <p class="lede">
+        <!--
+          One paragraph that tells a knowledgeable reader exactly what they'll
+          walk away knowing, and hints at the "why should I trust this" angle
+          (real infra, real tests, real citations — whatever's true here).
+        -->
+      </p>
+      <p>
+        <!--
+          One paragraph on the mechanics: runnable examples + failing-test
+          challenges per chapter, what infra/toolchain is needed (if any),
+          and the exact first command to run.
+        -->
+        Start with <code>{{SETUP_COMMAND}}</code>, then read on.
+      </p>
+
+      <div class="toc-parts">
+        <!--
+          One <section class="toc-part"> per part of the course. Each links
+          every chapter in that part with a one-line description of what it
+          actually covers (not a restatement of the title). This is the
+          reader's first real signal of whether the course is worth their
+          time — write these descriptions as carefully as the chapters
+          themselves.
+        -->
+        <section class="toc-part">
+          <h2>Part {{PART_ROMAN}} · {{PART_TITLE}}</h2>
+          <ol>
+            <li><a href="chapters/ch{{CH_NUM_PADDED}}.html"><span class="ch-num">{{CH_NUM}}</span><span><span class="ch-title">{{CHAPTER_TITLE}}</span><span class="ch-desc">{{ONE_LINE_CHAPTER_HOOK}}</span></span></a></li>
+          </ol>
+        </section>
+      </div>
+    </article>
+  </main>
+</div>
+<script src="assets/vendor/highlight.min.js"></script>
+<script src="assets/book.js"></script>
+</body>
+</html>

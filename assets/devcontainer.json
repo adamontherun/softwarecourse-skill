@@ -1,0 +1,50 @@
+// Generic devcontainer template. This is NOT meant to be used verbatim —
+// fill in the placeholders and delete whichever option (A or B) doesn't
+// apply, then delete these comment lines. Reference:
+// https://containers.dev/implementors/json_reference/
+//
+// devcontainer.json is JSONC (JSON + comments), which both VS Code and
+// GitHub Codespaces parse natively — these comments are safe to leave
+// during editing, just remove the ones that no longer apply before commit.
+{
+  "name": "{{COURSE_NAME}}",
+
+  // OPTION A — no live infra needed (a pure library/language course).
+  // Pick ONE base image matching the ecosystem, then delete OPTION B below
+  // (both the "dockerComposeFile"/"service" lines and docker-compose.extend.yml).
+  "image": "mcr.microsoft.com/devcontainers/{{python|javascript-node|rust|go}}:{{version-tag}}",
+
+  // OPTION B — course needs a live service (database, broker, etc).
+  // Delete the "image" line above. This pairs with
+  // docker-compose.extend.yml, which layers a dev-tooling container on
+  // top of the course's own compose.yaml WITHOUT editing that file, so
+  // local `docker compose up -d` behavior is completely unaffected. See
+  // that file's comments for a real gotcha this pattern hides: whatever
+  // port your compose.yaml maps for the live-infra service on the HOST
+  // must also be the port that service listens on INTERNALLY, or
+  // "localhost:<port>" means something different inside this devcontainer
+  // than it does on a reader's own machine. Verified end to end against a
+  // real Postgres-backed course before this template was written this way.
+  "dockerComposeFile": ["../compose.yaml", "docker-compose.extend.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspaces/{{repo-folder-name}}",
+
+  // Match features to the ecosystem. Full catalog: https://containers.dev/features
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/va-h/devcontainers-features/uv:1": {}
+  },
+
+  // Run the exact setup a local reader would run, so Codespaces and a
+  // local clone behave identically. Adapt per ecosystem:
+  //   Python:  "uv sync"
+  //   Node:    "npm install"
+  //   Rust:    "cargo build"
+  //   Go:      "go mod download"
+  "postCreateCommand": "{{SETUP_COMMAND}}",
+
+  // Forward whatever port(s) a reader would connect to (the live-infra
+  // service's port, or a demo API server's port) so Codespaces auto-opens
+  // a preview / shows a forwarded-port link when it starts.
+  "forwardPorts": []
+}
