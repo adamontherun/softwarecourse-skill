@@ -145,12 +145,16 @@ database. Copy `assets/style.css`, `assets/book.js`, and
 `assets/vendor/highlight.min.js` into the new project's `book/assets/`
 verbatim — they're already topic-agnostic and already carry the mobile
 layout fixes described below. Create the repo-root `README.md` from
-`assets/readme-template.md` now too, even though several of its tokens
-(`{{PAGES_URL}}`, `{{CODESPACES_URL}}`, `{{PAGES_HOST_PATH}}`) can't resolve
-until Deploy — starting from the template avoids ever hand-rolling the
-badge row again, which is what produced a real, visibly-broken README once
-(a plain markdown link sitting next to a graphical badge, mismatched height
-and weight — see the template's own comments for the fix). Commit.
+`assets/readme-template.md` now too. Fill in `{{BRAND_HEX}}` immediately
+(it's just the course's own `--brand` CSS variable, already decided) — but
+`{{PAGES_URL}}` and `{{PAGES_HOST_PATH}}` can't resolve until Deploy, so
+leave those as literal tokens for now. Starting from the template avoids
+ever hand-rolling the badge row again, which is what produced a real,
+visibly-broken README once (a plain markdown link sitting next to a
+graphical badge, mismatched height and weight — see the template's own
+comments for the fix, and for why the README only ever gets one badge,
+pointing to the book, rather than a second Codespaces badge of its own).
+Commit.
 
 ### 4. Build the book shell
 
@@ -339,27 +343,36 @@ this skill to add there.
    `book/` (from `assets/index-template.html` / `chapter-template.html`)
    carry the same family of tokens for exactly this reason — one pass
    fills them all:
-   - `{{CODESPACES_URL}}` → `https://codespaces.new/<owner>/<name>`
-   - `{{REPO_URL}}` / `{{PAGES_URL}}` → `https://github.com/<owner>/<name>`
-     and the live Pages URL confirmed reachable in step 6
-   - `{{PAGES_HOST_PATH}}` → the Pages host+path with no scheme, e.g.
-     `<owner>.github.io/<name>`
-   - `{{WHAT_S_ALREADY_RUNNING}}` → whatever that page's environment
+   - `{{CODESPACES_URL}}` (book pages only) → `https://codespaces.new/<owner>/<name>`
+   - `{{REPO_URL}}` (book pages only) → `https://github.com/<owner>/<name>`
+   - `{{PAGES_URL}}` (README only) → the live Pages URL confirmed reachable
+     in step 6, e.g. `https://<owner>.github.io/<name>/` — this is the
+     published site, not the repo; don't reuse `{{REPO_URL}}`'s value here,
+     they're different URLs and mixing them up is exactly the kind of
+     typo that fails silently
+   - `{{PAGES_HOST_PATH}}` (README only) → the Pages host+path with no
+     scheme, e.g. `<owner>.github.io/<name>`
+   - `{{WHAT_S_ALREADY_RUNNING}}` (both) → whatever that page's environment
      actually provides ("Postgres is already running there", or "the
      toolchain is already installed" if there's no live infra)
-   never a placeholder or an assumed username. A single find-and-replace
-   across the repo root and `book/` catches all of it, the same mechanical
-   sweep stage 5 already uses for nav changes — but re-open both the README
-   (on GitHub, not just locally — badge rendering only shows up there) and
-   the book in a browser afterward and click every link for real. A
-   typo'd owner/repo fails silently (404) rather than loudly, and a
-   mismatched badge pairing (a plain link next to a graphical badge, or two
-   badges of different visual weight) reads as a broken page even when
-   every link works — this happened for real once, which is why
-   `readme-template.md` exists instead of writing this badge row from
-   scratch each time. Grep both `README.md` and `book/` for the literal
-   string `{{` afterward — it should come back empty before you move on.
-   Commit this together, separately from the deploy mechanics themselves.
+   never a placeholder or an assumed username. Note the README deliberately
+   does *not* carry its own `{{CODESPACES_URL}}` — it points at the book
+   instead (`Open [the book]({{PAGES_URL}})... "Launch Codespace"`), since
+   the book is the single source of truth for that link now; don't add a
+   second Codespaces badge/URL to the README, it'll just be one more place
+   the deploy step (or a future manual edit) can leave stale. A single
+   find-and-replace across the repo root and `book/` catches all of it, the
+   same mechanical sweep stage 5 already uses for nav changes — but re-open
+   both the README (on GitHub, not just locally — badge rendering only
+   shows up there) and the book in a browser afterward and click every link
+   for real. A typo'd owner/repo fails silently (404) rather than loudly,
+   and a mismatched badge pairing (a plain link next to a graphical badge)
+   reads as a broken page even when every link works — this happened for
+   real once, which is why `readme-template.md` exists instead of writing
+   this badge row from scratch each time. Grep both `README.md` and `book/`
+   for the literal string `{{` afterward — it should come back empty before
+   you move on. Commit this together, separately from the deploy mechanics
+   themselves.
 
 ## Bundled resources
 
@@ -376,9 +389,11 @@ this skill to add there.
   the reader stuck re-deriving `docker compose up` from memory.
 - `assets/readme-template.md` — the repo-root `README.md` starting point,
   filled in during stage 3 and finished during Deploy step 7. Its own
-  comments explain the badge-pairing rules (why "Read the Book" is a
-  color-matched shields.io badge, not a plain link sitting next to a
-  graphical one) — read them before touching the badge row by hand.
+  comments explain why it carries exactly one badge (a color-matched
+  shields.io "Read the Book" badge, not a plain link sitting next to a
+  graphical one, and not a second Codespaces badge duplicating what the
+  book's own sidebar already links to) — read them before touching the
+  badge row by hand.
 - `assets/devcontainer.json` — fill in during the final stage; see its
   inline comments for the two configurations (self-contained vs. live-infra).
 - `assets/docker-compose.extend.yml` — only needed alongside devcontainer

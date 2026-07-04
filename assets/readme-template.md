@@ -10,34 +10,31 @@
 {{ONE_TO_TWO_SENTENCE_TAGLINE}}
 
 <!--
-  BADGES. Both of these only resolve once the repo is deployed, so leave
-  {{PAGES_URL}} / {{CODESPACES_URL}} / {{PAGES_HOST_PATH}} as literal tokens
-  until Deploy step 7 (same tokens the book itself uses in its sidebar —
-  see index-template.html/chapter-template.html). Two rules that matter here,
-  learned from a real course that got this wrong first:
+  ONE badge, not two. {{PAGES_URL}} / {{PAGES_HOST_PATH}} only resolve once
+  the repo is deployed, so leave them as literal tokens until Deploy step 7
+  (same family of tokens the book itself uses in its sidebar — see
+  index-template.html/chapter-template.html).
 
-  1. Never pair a plain markdown link with a graphical badge on the same
-     line (e.g. "**[Read the book](url)** · [![badge]]"). The plain link
-     and the boxy badge render at different heights/weights and the line
-     looks broken, not intentional. Make the book itself a badge too.
-  2. Build the "Read the Book" badge as a shields.io badge that matches the
-     book's own brand color, so it reads as a matched pair with the
-     Codespaces badge rather than a random shield stuck next to GitHub's
-     official one:
-     https://img.shields.io/badge/📖_Read_the_Book-{{PAGES_HOST_PATH}}-{{BRAND_HEX}}
-     ({{BRAND_HEX}} is the course's own --brand CSS variable, no leading
-     "#"; {{PAGES_HOST_PATH}} is the Pages host+path with no scheme, e.g.
-     "adamontherun.github.io" or "adamontherun.github.io/sqlalchemy-mastery"
-     if the Pages URL has a path segment — spaces become underscores, and
-     a literal "-" inside a label must be escaped as "--" or shields.io
-     reads it as a field separator).
+  The book is the single source of truth for "how do I get an environment,"
+  not the README — every chapter already has its own Launch-Codespace link
+  and its own local-setup instructions in the Try It box. Don't duplicate a
+  second Codespaces badge here; it drifts out of sync with the book and,
+  the one time this was tried, left a dangling "click the badge above" once
+  someone simplified the README later and forgot the badge was load-bearing
+  for that sentence. One badge means there's nothing to keep in sync.
 
-  The Codespaces badge is GitHub's own asset (github.com/codespaces/badge.svg)
-  — never reimplement it, it's already the right height to match a default
-  shields.io badge.
+  Build the "Read the Book" badge as a shields.io badge matching the book's
+  own brand color, so it doesn't look like a generic placeholder shield:
+  https://img.shields.io/badge/📖_Read_the_Book-{{PAGES_HOST_PATH}}-{{BRAND_HEX}}
+  {{BRAND_HEX}} is the course's own --brand CSS variable (no leading "#")
+  and is already known at stage 3 — fill it in immediately, it doesn't wait
+  for Deploy. {{PAGES_HOST_PATH}} is the Pages host+path with no scheme,
+  e.g. "adamontherun.github.io" or "adamontherun.github.io/sqlalchemy-mastery"
+  if the Pages URL has a path segment — spaces become underscores, and a
+  literal "-" inside a label must be escaped as "--" or shields.io reads it
+  as a field separator.
 -->
 [![Read the Book](https://img.shields.io/badge/📖_Read_the_Book-{{PAGES_HOST_PATH}}-{{BRAND_HEX}})]({{PAGES_URL}})
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)]({{CODESPACES_URL}})
 
 <!--
   This paragraph exists because a reader landing on the repo (not the book)
@@ -63,33 +60,22 @@ straight back to Codespaces, so you're never more than one click from
 -->
 - **Part {{PART_ROMAN}} · {{PART_TITLE}}** — {{ONE_LINE_PART_SUMMARY}}
 
-## The book
-
-Open **[book/index.html](book/index.html)** in your browser, or read the
-published copy above. It's a self-contained static HTML book: no build
-step, works offline, light and dark mode. It doesn't contain any of the
-runnable code itself — that lives in {{CODE_DIRECTORIES}} below, which is
-why you need one of the environments in "Setup" to actually run anything
-the book shows you.
-
 ## Setup
 
 <!--
-  If stage 1 decided this topic needs live infrastructure, keep both paths
-  below as-is. If the topic is self-contained (no Docker/Compose file
-  exists), delete the Codespaces-vs-local infra framing and reduce this to
-  whatever the ecosystem's own one-line install command is
-  (uv sync / npm install / cargo build / etc.) — don't describe an
-  environment split that doesn't exist.
+  Codespaces gets one sentence that points at the book, not a repeated
+  badge/instructions block — see the note on the badge above for why.
+  If stage 1 decided this topic needs live infrastructure, keep the local
+  path below as-is. If the topic is self-contained (no Docker/Compose file
+  exists), drop the "environment" language and reduce this to whatever the
+  ecosystem's own one-line install command is (uv sync / npm install /
+  cargo build / etc.).
 -->
-Two ways to get a working environment:
+Don't want to install anything? Open [the book]({{PAGES_URL}}) and click
+"Launch Codespace" in any chapter's sidebar — it opens a cloud dev
+environment with {{WHAT_S_ALREADY_RUNNING}}.
 
-**GitHub Codespaces** — click the badge above. It opens a full dev
-environment with {{WHAT_S_ALREADY_RUNNING}}. Once it's ready, run
-{{POST_CREATE_COMMAND}} if it wasn't run for you automatically, then jump
-to "Running examples" below.
-
-**Locally** — you need {{PREREQUISITE_TOOLS_WITH_LINKS}}:
+To run locally, you need {{PREREQUISITE_TOOLS_WITH_LINKS}}:
 
 ```sh
 {{SETUP_COMMANDS}}
@@ -97,14 +83,6 @@ to "Running examples" below.
 
 {{ANY_LOCAL_INFRA_NOTES — e.g. port numbers, credentials, why a non-default
 port was chosen. Delete this paragraph if there's nothing non-obvious to say.}}
-
-## Running examples
-
-Every chapter has runnable scripts under `examples/`:
-
-```sh
-{{EXAMPLE_RUN_COMMAND}}
-```
 
 ## Doing challenges
 
