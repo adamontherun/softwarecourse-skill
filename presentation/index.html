@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A playbook that writes textbooks</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --paper: #faf6f1;
+      --ink: #211d1a;
+      --muted: #7d746c;
+      --accent: #c0392b;
+      --accent-soft: #f3e0dd;
+      --line: #e6ddd3;
+      --mono: "JetBrains Mono", monospace;
+    }
+
+    .reveal-viewport { background: var(--paper); }
+
+    .reveal {
+      font-family: "Inter", sans-serif;
+      font-size: 30px;
+      color: var(--ink);
+    }
+
+    .reveal .slides section {
+      text-align: left;
+      padding: 0 40px;
+    }
+
+    .reveal h1, .reveal h2 {
+      font-family: "Fraunces", serif;
+      font-weight: 600;
+      color: var(--ink);
+      text-transform: none;
+      letter-spacing: -0.01em;
+      line-height: 1.08;
+      margin-bottom: 0.5em;
+    }
+    .reveal h1 { font-size: 2.6em; }
+    .reveal h2 { font-size: 1.9em; }
+
+    .kicker {
+      font-family: var(--mono);
+      font-size: 0.52em;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      margin-bottom: 1.6em;
+      display: block;
+    }
+
+    .reveal p, .reveal li { line-height: 1.55; }
+    .reveal .lede { font-size: 1.05em; color: var(--ink); max-width: 21em; }
+    .reveal .sub { color: var(--muted); font-size: 0.78em; max-width: 26em; }
+
+    .reveal ul { margin-left: 0.2em; }
+    .reveal ul li {
+      list-style: none;
+      padding-left: 1.1em;
+      position: relative;
+      margin-bottom: 0.55em;
+      font-size: 0.88em;
+    }
+    .reveal ul li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.55em;
+      width: 0.42em; height: 0.42em;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #fdfaf6;
+      box-shadow: 0 1px 0 var(--line);
+      padding: 0.7em 1em;
+      font-size: 0.72em;
+      color: var(--ink);
+      max-width: 30em;
+      margin-top: 1.4em;
+    }
+    .callout .label {
+      font-family: var(--mono);
+      font-size: 0.78em;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.3em;
+    }
+
+    .figure { margin-top: 1.2em; }
+    .figlabel {
+      font-family: var(--mono);
+      font-size: 0.55em;
+      color: var(--muted);
+      margin-top: 1.1em;
+    }
+
+    /* pipeline diagram */
+    .pipeline {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-top: 2.2em;
+    }
+    .pipeline::before {
+      content: "";
+      position: absolute;
+      top: 7px; left: 4%; right: 4%;
+      height: 3px;
+      background: var(--line);
+    }
+    .pipeline .step {
+      position: relative;
+      text-align: center;
+      flex: 1;
+    }
+    .pipeline .dot {
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 0 auto 0.55em;
+      position: relative;
+    }
+    .pipeline .name { font-weight: 600; font-size: 0.72em; }
+    .pipeline .gloss { font-size: 0.55em; color: var(--muted); margin-top: 0.15em; }
+
+    /* model routing diagram */
+    .routing { display: flex; align-items: center; gap: 2.5em; margin-top: 1.4em; }
+    .routing .orchestrator { text-align: center; flex-shrink: 0; }
+    .routing .ring {
+      width: 130px; height: 130px;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.72em; color: var(--accent);
+      margin: 0 auto 0.6em;
+    }
+    .routing .orchestrator .gloss { font-size: 0.55em; color: var(--muted); max-width: 11em; }
+    .routing .workers { display: flex; flex-direction: column; gap: 0.7em; }
+    .routing .worker { display: flex; align-items: center; gap: 0.8em; }
+    .routing .chip {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--paper);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.62em;
+      flex-shrink: 0;
+    }
+    .routing .worker .what { font-size: 0.78em; }
+
+    /* adversarial diagram */
+    .versus { display: flex; align-items: center; justify-content: center; gap: 1.4em; margin-top: 1.6em; }
+    .versus .model {
+      width: 118px; height: 118px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.68em;
+      flex-shrink: 0;
+    }
+    .versus .model.claude { border: 3px solid var(--accent); color: var(--accent); }
+    .versus .model.gpt { border: 3px solid var(--ink); color: var(--ink); }
+    .versus .arrow {
+      font-size: 0.55em;
+      color: var(--muted);
+      text-align: center;
+      flex-shrink: 0;
+      min-width: 5.5em;
+    }
+    .versus .arrow .line { height: 3px; margin-top: 0.4em; }
+    .versus .arrow.from-claude .line { background: var(--accent); }
+    .versus .arrow.from-gpt .line { background: var(--ink); }
+    .versus .claim {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fdfaf6;
+      padding: 0.8em 1em;
+      font-family: var(--mono);
+      font-size: 0.6em;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .versus .claim .id { color: var(--ink); }
+    .versus .claim .text { color: var(--muted); margin-top: 0.3em; }
+    .outcomes {
+      display: flex;
+      justify-content: center;
+      gap: 3em;
+      margin-top: 1.3em;
+      font-weight: 600;
+      font-size: 0.72em;
+    }
+    .outcomes .agree { color: #1e7a46; }
+    .outcomes .disagree { color: var(--accent); }
+
+    .shot {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 18px 50px rgba(33, 29, 26, 0.14);
+      max-width: 78%;
+    }
+
+    .two-col { display: flex; gap: 1.6em; align-items: center; }
+    .two-col > div { flex: 1; }
+
+    .mono { font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
+
+    .footer-tag {
+      position: absolute;
+      bottom: -160px;
+      font-family: var(--mono);
+      font-size: 0.5em;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    .reveal .progress { color: var(--accent); height: 4px; }
+    .reveal .controls { color: var(--accent); }
+
+    .bigquote {
+      font-family: "Fraunces", serif;
+      font-size: 1.5em;
+      font-weight: 500;
+      line-height: 1.3;
+      max-width: 18em;
+    }
+    .bigquote em { color: var(--accent); font-style: normal; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1 · Title -->
+      <section>
+        <span class="kicker">A Claude Code skill, end to end</span>
+        <h1>A playbook that<br>writes textbooks</h1>
+        <p class="sub">How one markdown file turns an agent into a careful course
+        author, with a second AI from a rival lab checking its facts.</p>
+        <p class="footer-tag">github.com/adamontherun/softwarecourse-skill</p>
+      </section>
+
+      <!-- 2 · The output -->
+      <section>
+        <span class="kicker">Start with the result</span>
+        <h2>One run produced this</h2>
+        <div class="two-col">
+          <div>
+            <ul>
+              <li>A 12-chapter SQLAlchemy book, hand-built HTML</li>
+              <li>Every code example ran before it was quoted</li>
+              <li>Challenges with tests, plus reference solutions</li>
+              <li>Live on GitHub Pages, opens in Codespaces</li>
+            </ul>
+          </div>
+          <div>
+            <img class="shot" src="assets/course-homepage.png" alt="Cover page of the SQLAlchemy Mastery course, showing the sidebar table of contents and hero copy">
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 · What a skill is -->
+      <section>
+        <span class="kicker">The mechanism</span>
+        <h2>The whole thing is<br>one markdown file</h2>
+        <p class="lede">No framework, no pipeline code. A skill is a written
+        playbook that Claude Code reads when the task matches.</p>
+        <p class="sub">Just under 800 lines of process, most of it earned the hard way:
+        a mobile bug found after shipping, a lint retrofit that surfaced 56
+        violations, a fake package that almost got installed. Each lesson became
+        an instruction.</p>
+      </section>
+
+      <!-- 4 · The stages -->
+      <section>
+        <span class="kicker">The process</span>
+        <h2>Built in stages, committed in stages</h2>
+        <div class="figure">
+          <div class="pipeline">
+            <div class="step"><div class="dot"></div><div class="name">interview</div><div class="gloss">who is it for</div></div>
+            <div class="step"><div class="dot"></div><div class="name">research</div><div class="gloss">real docs, cited</div></div>
+            <div class="step"><div class="dot"></div><div class="name">scaffold</div><div class="gloss">repo, infra, CI</div></div>
+            <div class="step"><div class="dot"></div><div class="name">write</div><div class="gloss">code first, then prose</div></div>
+            <div class="step"><div class="dot"></div><div class="name">check</div><div class="gloss">three separate passes</div></div>
+            <div class="step"><div class="dot"></div><div class="name">deploy</div><div class="gloss">watched until green</div></div>
+          </div>
+        </div>
+        <p class="figlabel">One git commit per stage. A course you can review, resume, or roll back.</p>
+      </section>
+
+      <!-- 5 · Grounding -->
+      <section>
+        <span class="kicker">Ground rule</span>
+        <h2>Nothing load-bearing<br>comes from memory</h2>
+        <ul>
+          <li>Default values, gotchas, version claims: researched against current docs, cited inline</li>
+          <li>Output shown in the book is captured from code that actually ran</li>
+          <li>Citations get re-fetched later to confirm the page still says what the book claims</li>
+        </ul>
+        <div class="callout">
+          <span class="label">why it matters</span>
+          A fabricated number looks exactly as credible as a real one. The reader
+          only finds out in production.
+        </div>
+      </section>
+
+      <!-- 6 · Fresh eyes -->
+      <section>
+        <span class="kicker">Agentic practice · 1</span>
+        <h2>The writer never<br>grades its own work</h2>
+        <p class="lede">Drafting, the prose sweep, and the fact-check each run in
+        a separate agent with no shared context.</p>
+        <ul>
+          <li>The prose pass caught around 260 em-dashes across 12 chapters</li>
+          <li>The fact-check found two wrong claims the writer fully believed</li>
+        </ul>
+      </section>
+
+      <!-- 7 · Model routing -->
+      <section>
+        <span class="kicker">Agentic practice · 2</span>
+        <h2>Expensive tokens only<br>where they earn it</h2>
+        <div class="figure">
+          <div class="routing">
+            <div class="orchestrator">
+              <div class="ring">Sonnet</div>
+              <div class="gloss">orchestrates: git, lint, templates, running code</div>
+            </div>
+            <div class="workers">
+              <div class="worker"><div class="chip">Opus</div><div class="what">drafts each chapter</div></div>
+              <div class="worker"><div class="chip">Opus</div><div class="what">runs the fact-check</div></div>
+              <div class="worker"><div class="chip">Opus</div><div class="what">adjudicates disputes</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="figlabel">One parameter per subagent call. Aliases, never pinned versions.</p>
+      </section>
+
+      <!-- 8 · Adversarial -->
+      <section>
+        <span class="kicker">The adversarial step</span>
+        <h2>Then a rival model<br>checks the homework</h2>
+        <div class="figure">
+          <div class="versus">
+            <div class="model claude">Claude</div>
+            <div class="arrow from-claude">verifies<div class="line"></div></div>
+            <div class="claim">
+              <div class="id">claim #14</div>
+              <div class="text">"pool_size<br>defaults to 5"</div>
+            </div>
+            <div class="arrow from-gpt">verifies, blind<div class="line"></div></div>
+            <div class="model gpt">GPT</div>
+          </div>
+          <div class="outcomes">
+            <div class="agree">agree → claim closed</div>
+            <div class="disagree">disagree → contested list</div>
+          </div>
+        </div>
+        <p class="sub" style="margin-top:1em">GPT runs headless through Cursor's CLI. It never sees
+        Claude's verdicts, so it can't rubber-stamp them.</p>
+      </section>
+
+      <!-- 9 · Adjudication -->
+      <section>
+        <span class="kicker">Settling a dispute</span>
+        <h2>Contested claims get<br>a real adjudication</h2>
+        <ul>
+          <li>Fresh agents research the claim with no knowledge of either verdict</li>
+          <li>A documented API page beats a blog post, whichever model cited it</li>
+          <li>Every correction lands in its own commit, with the second model named in the message</li>
+        </ul>
+        <div class="callout">
+          <span class="label">tested for real</span>
+          We fed it a planted lie: "requests times out after 5 seconds by
+          default." GPT came back DISPUTED in 16 seconds, with the docs page
+          proving requests never times out unless you ask.
+        </div>
+      </section>
+
+      <!-- 10 · Verified by running -->
+      <section>
+        <span class="kicker">The finish line</span>
+        <h2>Done means it ran</h2>
+        <ul>
+          <li>Challenge tests must fail on the empty skeleton and pass on the solution</li>
+          <li>CI runs both directions on every push, plus a devcontainer smoke test</li>
+          <li>The deployed site gets fetched and checked before anyone declares victory</li>
+        </ul>
+        <p class="sub" style="margin-top:1.2em">A green checkmark is a claim too.
+        The skill treats it like any other: verify it by looking at the log.</p>
+      </section>
+
+      <!-- 11 · Close -->
+      <section>
+        <span class="kicker">Try it</span>
+        <p class="bigquote">The agent does the work.<br>
+        The playbook makes it <em>careful</em>.</p>
+        <p class="sub" style="margin-top:1.4em">Skill and reference course, both open source:</p>
+        <p class="mono">github.com/adamontherun/softwarecourse-skill<br>
+        adamontherun.github.io/sqlalchemy-mastery</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1280,
+      height: 720,
+      margin: 0.06,
+      hash: true,
+      controls: false,
+      progress: true,
+      transition: "fade",
+      transitionSpeed: "slow"
+    });
+  </script>
+</body>
+</html>
