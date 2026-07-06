@@ -294,6 +294,16 @@ to, itself:
   claim, missing citation on a claim that needs one, the claim itself
   looks outdated or wrong), and a suggested fix. The subagent only
   diagnoses — it doesn't edit anything.
+- Alongside that plain-list report, have the subagent persist every
+  load-bearing claim it extracted — not just the ones it flagged — to
+  `notes/fact-check-manifest.json`: one entry per claim with an id, the
+  chapter file, the quoted claim text, a category (default value,
+  benchmark, best-practice, gotcha, version-specific behavior), any
+  existing citation URL, and this pass's verdict (CONFIRMED / DISPUTED /
+  UNVERIFIED). This file is inert during a same-family-only run — it only
+  matters as the hand-off artifact for the Adversarial cross-check stage
+  below — but write it every time regardless, since you won't know until
+  after this stage whether that next stage will run.
 
 Review every returned finding yourself before touching a file: a
 subagent's finding describes what it believes it found, not a verified
@@ -308,6 +318,124 @@ auditing a course that's already shipped, too — if a reader reports an
 error, or enough time has passed that stage 2's "current" research might
 have drifted, rerun this stage against the live book instead of assuming
 the original research is still accurate.
+
+### N. Adversarial cross-check
+
+Fact-check already runs a fresh subagent because the agent that drafted a
+claim is a poor judge of its own mistake. The same reasoning applies one
+level up: a fresh subagent is still the same model family, trained on
+overlapping data, and can share the exact blind spot the drafting agent
+had without either one noticing. This stage escalates further — a
+genuinely different model family, running in its own harness, re-derives
+its own verdict on every claim independently. It's an addition to
+Fact-check, not a replacement for it; run this only after Fact-check has
+already produced `notes/fact-check-manifest.json` for the part.
+
+This stage is optional and must never block a course build. Detect what's
+actually available on the machine, live, every time — never assume from a
+previous run or from training data that a CLI is installed or
+authenticated, since both drift:
+
+1. Check `command -v cursor-agent`. If present, confirm it's authenticated
+   (a bare status/whoami-style check — treat "not logged in" the same way
+   Deploy treats an unauthenticated `gh`: not your problem to fix, just
+   detect it). If authenticated, resolve which model to use dynamically —
+   run `cursor-agent --list-models` and pick the most capable current
+   frontier entry, preferring OpenAI. `cursor-agent`'s model list mixes
+   several vendors (GPT/Codex, Claude/Anthropic, Gemini, Grok, GLM, and
+   others), and this skill itself runs on Claude Code — an Anthropic
+   harness. Selecting a Claude/Anthropic model from that list would put
+   the same model family on both sides of the check and defeat the entire
+   point of this stage, so treat any `claude-*`/Anthropic entry as
+   off-limits here regardless of how capable or recent it looks. Prefer
+   the newest high-effort OpenAI entry (the list's own naming exposes
+   reasoning-effort tiers like `-high`/`-xhigh`; prefer one of those over
+   a low-effort or `-mini`/`-nano` variant). If no OpenAI entry is
+   available at all, fall back to another non-Anthropic frontier vendor
+   in the list (e.g. Gemini or Grok) before ever falling back to Claude.
+   Don't hardcode a specific model string like "gpt-5.5-high" anywhere in
+   a prompt or command; the available lineup drifts release to release
+   and a stale hardcoded name will either error or silently pick an old
+   model — always resolve it live from `--list-models` output.
+2. Otherwise check `command -v codex`, and whether it's authenticated
+   (an `OPENAI_API_KEY`/login check, same "detect, don't fix" discipline).
+   If available, use it instead.
+3. Otherwise, neither harness is usable. Don't block. Append one line to
+   `notes/research.md` documenting that the adversarial cross-check was
+   skipped because neither `cursor-agent` nor `codex` was
+   installed/authenticated, and that this course's fact-checking relied on
+   same-family verification only — the same "document the assumption
+   prominently" discipline stage 1 uses for unattended runs. Tell the user
+   how to enable it next time (`cursor-agent login`, or install and
+   authenticate `codex`) and move on to Final.
+
+If a harness is available, invoke it headlessly, once per part — same
+granularity as Humanize and Fact-check. The prompt must **not** reveal
+Fact-check's verdicts: hand it the raw chapter HTML and the claim list
+only (id, chapter, quoted text, category), and ask it to re-derive its own
+judgment from scratch. Telling a second model "another model already
+verified this" invites it to rubber-stamp rather than independently
+check, which defeats the entire point of asking a different model family.
+Ask it to use whatever research/browsing capability it currently exposes
+in agent mode — confirm what that actually is via the harness's own
+`--help` or current docs rather than assuming a specific tool name, since
+these CLIs change frequently — and to return one verdict per claim id:
+CONFIRMED / DISPUTED / UNVERIFIABLE, an evidence URL, and a one-line
+reason. State explicitly in the prompt that this is a read-only
+research-and-report task with no file writes or edits — the same
+diagnose-only boundary Fact-check's subagent has. Try the harness's own
+sandboxed flag as a second layer on top of that prompt instruction (e.g.
+`cursor-agent`'s `--sandbox enabled`) — but don't depend on it working:
+on at least one real machine it hard-errored with "Sandbox mode is
+enabled but not available on this system" instead of degrading quietly,
+so if it errors, drop the flag and rely on the explicit prompt instruction
+alone rather than treating the error as a reason to abort the stage.
+Headless invocation of a workspace `cursor-agent` hasn't seen before also
+blocks on an interactive trust prompt unless you pass `--trust` (only
+valid in `--print`/headless mode) — always include it, or the call will
+hang rather than run. Save the raw response to
+`notes/adversarial-cross-check-part-<N>.json` so there's an audit trail of
+what the other model family actually said.
+
+Diff the two verdict sets per claim id. Where Fact-check and the
+cross-family harness independently agree CONFIRMED, no further action is
+needed — that agreement is the point of running two families, and it
+would be wasted effort to re-litigate claims neither side doubts. Any
+claim where the two disagree, or where either one says DISPUTED or
+UNVERIFIABLE, is controversial; collect these into
+`notes/controversial-claims.md`.
+
+For each controversial claim, act as the oracle yourself rather than
+mechanically tallying votes or handing the decision to the user by
+default. Gather 1-2 more independent opinions first:
+
+- A fresh same-family subagent (Agent tool, `general-purpose`) given only
+  the claim text and a primary-source research task — nothing about
+  either prior verdict, so it can't simply agree with whichever side it's
+  shown.
+- Optionally, re-run the cross-family harness on just this one claim,
+  explicitly prompted to argue the opposite of its own first verdict.
+  This is cheap once it's a single claim rather than a whole manifest, and
+  a steelman-the-other-side prompt tends to surface evidence a
+  confirmation-seeking re-run would miss.
+
+Then read all of it yourself — both original verdicts, the extra
+opinions, and every cited URL — and decide, applying the same
+primary-source-wins discipline as stages 2 and Fact-check: a documented
+API page or changelog entry beats a blog post or a model's own assertion,
+regardless of which family said what. If the sources genuinely don't
+resolve it, say so in the fix — soften the claim or add a hedge — rather
+than asserting either side with confidence you don't actually have.
+
+Fix what's genuinely wrong and commit separately from both the content
+commit and the Fact-check commit, with the harness in the message so a
+later reader has provenance without digging through `notes/` — e.g.
+`"adversarial cross-check pass (cursor-agent/<model>), N corrections"`.
+
+Like Fact-check, this isn't only a during-the-build step — it's the right
+tool to rerun against an already-shipped course whenever a second opinion
+from a different model family would be worth the cost, not only while
+the course is being written.
 
 ### Final. Verify, then wire up online access
 
