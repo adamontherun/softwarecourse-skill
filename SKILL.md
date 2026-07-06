@@ -433,7 +433,18 @@ authenticated, since both drift:
    authenticate `codex`) and move on to Final.
 
 If a harness is available, invoke it headlessly, once per part — same
-granularity as Humanize and Fact-check. The prompt must **not** reveal
+granularity as Humanize and Fact-check. A single part's invocation
+routinely takes several minutes of real browsing and can exceed your
+shell tool's foreground timeout cap (e.g. 10 minutes) even though the
+harness itself is still working — that's a limit of the calling tool, not
+a sign the harness hung. Run each part's invocation as a background
+command (or otherwise detached from your foreground wait) so a slow part
+doesn't get killed mid-run and silently produce a truncated or empty
+output file; check on it by polling the output file's size/mtime rather
+than blocking in the foreground. If you do run one in the foreground and
+it gets killed by the timeout, just rerun that same part — the file being
+empty or truncated is the signal, not a reason to shorten the prompt or
+skip the part. The prompt must **not** reveal
 Fact-check's verdicts: hand it the raw chapter HTML and the claim list
 only (id, chapter, quoted text, category), and ask it to re-derive its own
 judgment from scratch. Telling a second model "another model already
