@@ -1,6 +1,7 @@
 ---
 name: softwarecourse
 description: Builds a complete, research-grounded, mobile-friendly HTML5 course/book teaching a specific software topic — a library, framework, language feature, protocol, or tool the user names (e.g. "build me a course on Redis", "make a book teaching React Server Components", "I want to learn gRPC, create something like a tutorial site"). Produces multiple chapters of prose grounded in real fetched documentation with inline citation links, runnable and verified code examples, test-driven challenges per chapter with reference solutions, a reusable hand-crafted design system (light/dark mode, mobile-responsive, callout boxes), and live infrastructure via Docker when the topic needs it. Also handles publishing an already-built course of this kind to GitHub — creating the repo under the user's own authenticated GitHub CLI account, pushing, enabling GitHub Pages, and wiring up a devcontainer so it opens in Codespaces — so use this whenever the user asks to "deploy," "publish," or "put this course/book online," even without asking to build anything new. Use this whenever the user asks to build/create/make a "course," "book," "tutorial site," "learning path," or similar multi-chapter teaching artifact about a specific technology, even if they don't use the word "skill" or say "course" exactly. Do NOT use this for a single blog post, a quick explanation of a concept, a one-off code snippet, or general documentation writing — this skill is specifically for the deliberate, staged construction (and deployment) of a full multi-chapter teaching resource with verified working code and real citations.
+model: sonnet
 ---
 
 # Software course builder
@@ -29,6 +30,45 @@ production. The staged process below exists to make that failure mode hard:
 research before writing, run code before claiming it works, cite sources so
 claims are checkable, and verify the finished product actually renders and
 works before calling it done.
+
+## Model routing
+
+A course build contains two very different kinds of work, and they don't
+need the same model. Orchestration — running example scripts and capturing
+output, filling templates, the find-and-replace nav sweeps, running
+linters, git commits, watching workflows — is mechanical, and a fast
+mid-tier model does it just as well for a fraction of the cost.
+Drafting chapter prose, the humanize close-read, fact-check judgment, and
+adjudicating disputed claims are the opposite: they're exactly where the
+strongest available model earns its cost, because a subtly wrong technical
+claim or tin-eared prose is the failure mode this whole skill exists to
+prevent.
+
+Route accordingly:
+
+- This skill's frontmatter requests `sonnet` for the invoking turn, and a
+  mid-tier session model is the intended setup for the build as a whole —
+  the heavy work is delegated below, so the orchestrating loop doesn't
+  need to be the expensive one. (A skill-frontmatter `model:` override
+  lasts only for the turn that invoked the skill; across a long multi-turn
+  build, the session model is whatever the user has set, which is theirs
+  to choose, not this skill's.)
+- Wherever this skill says to spawn a subagent for judgment-heavy work —
+  the per-chapter drafting subagent in stage 5, the humanize close-read,
+  the Fact-check pass, the extra opinions during adversarial
+  adjudication — pass `model: "opus"` on the Agent tool call. Use the
+  alias, never a pinned ID like `claude-opus-4-8`: the alias resolves to
+  the newest Opus at run time, the same no-hardcoded-model-strings
+  discipline the Adversarial cross-check stage applies to `cursor-agent`'s
+  model list.
+- If a model override is rejected (an org `availableModels` allowlist, a
+  plan that doesn't include it), drop the parameter and let the subagent
+  inherit the session model, noting that in the build's running notes —
+  never block the build on model availability, the same graceful-skip
+  discipline the Adversarial cross-check stage uses for missing harnesses.
+- Purely mechanical subagent errands (a quick file search, a link sweep)
+  don't need an override at all — inherit is fine, or `haiku` if the task
+  is truly rote and high-volume.
 
 ## The stages
 
@@ -238,6 +278,23 @@ chapter in that part:
    next part. This is what keeps stage 3's warning from becoming real: a
    small diff each part, not a 56-violation pile at the end.
 
+Steps 1-3 are the chapter's actual authoring — the hard-logic and
+hard-prose work — and per Model routing they run as one drafting subagent
+per chapter (Agent tool, `subagent_type: general-purpose`,
+`model: "opus"`), not inline in the orchestrating loop. The subagent
+starts cold, so its brief has to be self-contained: the chapter's slot in
+the outline and intended scope, the audience/version decisions from stage
+1, the relevant section of `notes/research.md`, the paths to
+`assets/chapter-template.html` and the live infrastructure (if any), and
+the house rules it can't infer on its own — inline citations per stage 2,
+never fabricate output, the skeleton-must-fail/solution-must-pass
+requirement from step 2. It has full tools, so it writes the files and
+runs the code itself; have it report back what it actually ran and the
+captured output. Then spot-check before accepting: re-run the chapter's
+tests yourself and skim the HTML — trust-but-verify, the same discipline
+as every other subagent result in this skill. Steps 4-5 are mechanical
+sweeps and tooling; they stay with the orchestrator.
+
 Commit at the end of each part, not at the end of every single chapter and
 not only at the very end. This is a judgment call the reference course made
 by grouping 2-4 chapters per commit; use your judgment on what constitutes
@@ -251,10 +308,16 @@ something to half-remember while drafting. The checklist explains what to
 look for and why (em-dash overuse, bold-term-dash list patterns, AI
 vocabulary, negative parallelism, and the rest) with enough detail that you
 shouldn't need to re-derive the reasoning each time. Grep for the
-mechanical signals first, then do one closer read per chapter for the
-patterns that don't grep well. This pass must never change what a chapter
-claims technically — if fixing the prose reveals the underlying claim was
-vague, that's an unfinished research task, not a wording fix.
+mechanical signals first — that part is rote and stays in the
+orchestrating loop — then hand the closer read to a fresh subagent (Agent
+tool, `subagent_type: general-purpose`, `model: "opus"` per Model
+routing), one per part, briefed with the checklist path and the chapter
+files. The fresh-eyes logic is the same as Fact-check's: the agent that
+just drafted a chapter reads its own tics as normal prose, so the pass is
+worth more coming from a context that didn't write the text. This pass
+must never change what a chapter claims technically — if fixing the prose
+reveals the underlying claim was vague, that's an unfinished research
+task, not a wording fix.
 
 ### N. Fact-check
 
@@ -262,10 +325,10 @@ Once a part is drafted and humanized, run an independent fact-check pass
 over it — with a fresh subagent, not the agent that just wrote the
 content. The agent that stated a claim already believes it; it's a poor
 judge of its own mistake. Use the Agent tool with `subagent_type:
-general-purpose` (Explore is read-only search and explicitly wrong for
-this — it reads excerpts, not whole pages, and isn't meant for open-ended
-judgment calls), once per part, same granularity as Humanize. Brief it
-to, itself:
+general-purpose` and `model: "opus"` per Model routing (Explore is
+read-only search and explicitly wrong for this — it reads excerpts, not
+whole pages, and isn't meant for open-ended judgment calls), once per
+part, same granularity as Humanize. Brief it to, itself:
 
 - Read the actual chapter HTML files fresh — nothing carried over from
   the drafting conversation.
@@ -409,10 +472,10 @@ For each controversial claim, act as the oracle yourself rather than
 mechanically tallying votes or handing the decision to the user by
 default. Gather 1-2 more independent opinions first:
 
-- A fresh same-family subagent (Agent tool, `general-purpose`) given only
-  the claim text and a primary-source research task — nothing about
-  either prior verdict, so it can't simply agree with whichever side it's
-  shown.
+- A fresh same-family subagent (Agent tool, `general-purpose`,
+  `model: "opus"` per Model routing) given only the claim text and a
+  primary-source research task — nothing about either prior verdict, so
+  it can't simply agree with whichever side it's shown.
 - Optionally, re-run the cross-family harness on just this one claim,
   explicitly prompted to argue the opposite of its own first verdict.
   This is cheap once it's a single claim rather than a whole manifest, and
