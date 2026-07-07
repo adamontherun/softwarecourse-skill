@@ -116,3 +116,17 @@ Examples clean up after themselves, but if you ever want a pristine database:
 ```sh
 {{RESET_COMMAND}}
 ```
+
+<!--
+  Analytics disclosure. INCLUDE this section only if the author opted into
+  PostHog analytics in stage 1 (i.e. the tokens in book/assets/book.js are
+  filled). DELETE it entirely otherwise — a course with analytics off should
+  not claim to collect anything. Keep it to these two sentences; it's a
+  transparency note, not a privacy policy.
+-->
+## Analytics
+
+The published book uses [PostHog](https://posthog.com) for anonymous reading
+analytics (pageviews, which chapters and sections get read, and Codespace
+launches) to help improve the course. No personal data is collected and there
+is no session recording.

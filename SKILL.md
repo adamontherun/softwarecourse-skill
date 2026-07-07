@@ -111,6 +111,17 @@ make obvious on its own:
   SQLAlchemy 2.0 with "watch" sidebars for 2.1). Ask which the user cares
   about, and check current version numbers via WebSearch rather than
   assuming your training data is current — it usually isn't.
+- **Reader analytics (optional, default off).** Ask whether the author wants
+  privacy-light reader analytics via PostHog (pageviews, "Launch Codespace"
+  clicks, scroll depth, per-section reading, code-copy events — no session
+  recording). If yes, collect their **public PostHog project token** (`phc_…`)
+  and region host (`https://us.i.posthog.com` or `https://eu.i.posthog.com`)
+  and a short course slug. That project token is *designed* to be embedded in
+  public client-side pages, so it's safe to hardcode — but a personal API key
+  (`phx_…`) or any other secret must never go in the course. If they don't
+  want analytics, or don't answer, leave it off: the wiring in
+  `assets/book.js` stays inert until its tokens are filled. See
+  `references/posthog-analytics.md`.
 
 Re-open this conversation mid-build if research surfaces something the
 interview didn't anticipate — two incompatible major versions both in wide
@@ -233,6 +244,16 @@ description token now — they're all already known and don't depend on
 deploying anything. Leave `{{PAGES_URL}}`, `{{OG_IMAGE_URL}}`, and the
 JSON-LD `hasPart`/per-chapter entries as literal tokens; Deploy step 9
 resolves those once the real domain and the homepage screenshot both exist.
+
+`assets/book.js` also ships an optional PostHog analytics module gated on
+three tokens near the top (`{{POSTHOG_KEY}}`, `{{POSTHOG_HOST}}`,
+`{{POSTHOG_COURSE_SLUG}}`). It is a no-op — no key, no network — until those
+resolve, so it's safe to carry through the build. If the author opted into
+analytics in stage 1, fill them now: `{{POSTHOG_KEY}}` → their public `phc_…`
+project token, `{{POSTHOG_HOST}}` → the region host, `{{POSTHOG_COURSE_SLUG}}`
+→ the course slug. If they didn't, leave the tokens literal (the guard keeps
+it disabled) — Final-stage cleanup blanks them. Never write a `phx_…` or any
+non-public key here. Details and event list: `references/posthog-analytics.md`.
 
 If this course lives in a different directory than wherever the current
 session's tooling is already anchored, an interactive browser-preview tool
@@ -525,6 +546,15 @@ Before calling the course done:
   `.sidebar-links` block and the `.tryit-env` paragraph from every page now;
   a book that ships with unresolved template tokens in visible links looks
   broken, not unfinished.
+- Resolve the optional analytics tokens in `book/assets/book.js`. If the
+  author opted into PostHog (stage 1), `{{POSTHOG_KEY}}` / `{{POSTHOG_HOST}}` /
+  `{{POSTHOG_COURSE_SLUG}}` should already be filled — confirm with
+  `grep -n "{{POSTHOG" book/assets/book.js` (expect no hits). If they didn't
+  opt in, blank the three values now (`var PH_KEY = "";` etc.) so no `{{`
+  tokens ship; the guard already keeps analytics disabled either way. These
+  live in JS, not a visible link, so an un-blanked token wouldn't *look*
+  broken — but leaving `{{` in shipped source is sloppy, and blanking makes
+  "analytics is off here" unambiguous.
 - Check the book renders correctly at mobile, tablet, and desktop widths.
   This is not a formality: the reference course shipped, was reported as
   "doesn't work well on mobile," and the actual bug was a one-line CSS
@@ -657,7 +687,11 @@ this skill to add there.
    - `{{WHAT_S_ALREADY_RUNNING}}` (both) → whatever that page's environment
      actually provides ("Postgres is already running there", or "the
      toolchain is already installed" if there's no live infra)
-   never a placeholder or an assumed username. Note the README deliberately
+   never a placeholder or an assumed username. The optional PostHog tokens in
+   `book/assets/book.js` (`{{POSTHOG_KEY}}`, `{{POSTHOG_HOST}}`,
+   `{{POSTHOG_COURSE_SLUG}}`) are *not* part of this deploy sweep — they should
+   already be resolved in stage 4 if the author opted in, or blanked in the
+   Final stage if not, so they won't show up in the `{{` grep below. Note the README deliberately
    does *not* carry its own `{{CODESPACES_URL}}` — it points at the book
    instead (`Open [the book]({{PAGES_URL}})... "Launch Codespace"`), since
    the book is the single source of truth for that link now; don't add a
